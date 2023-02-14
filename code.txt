@@ -1,0 +1,231 @@
+
+
+
+                             CODE USED
+
+
+
+import numpy as np
+from tkinter import *
+import importlib
+import os
+import tkinter as tk
+import mysql.connector 
+from sqlalchemy.exc import SQLAlchemyError
+import pandas as pd
+
+root = Tk() 
+root.geometry("500x500")
+root.config(bg="light gray")
+
+# declaring string variable 
+host_var = StringVar()
+user_var = StringVar()
+pass_var = StringVar()
+db_name = StringVar()
+
+
+
+def Submit_db():
+    host = host_var.get()
+    user = user_var.get()
+    pas = pass_var.get()
+    db = db_name.get()
+    
+    print("Host name is" +host)
+    print("user name is" +user)
+    print("pass name is" +pas)
+    print("db name is" +db)
+
+    try:
+        conn = mysql.connector.connect(
+        host="13.231.114.222",
+        user="root",
+        password="temp123"
+                   )
+        if conn.is_connected():
+            cursor = conn.cursor()
+            cursor.execute("CREATE DATABASE "+ db)
+            print(db+"database is created")
+    except Error as e:
+        print("Error while connecting to MySQL", e)
+        
+def create_db():
+    root_db = Toplevel(root)
+    root_db.geometry("350x350")
+    
+    Label(root_db,text="Host").grid(row=0,column=1)
+    entry1= Entry(root_db,textvariable = host_var).grid(row=0,column=2)
+    
+    Label(root_db,text="User").grid(row=1,column=1)
+    entry2 = Entry(root_db, textvariable = user_var).grid(row=1,column=2)
+    
+    Label(root_db,text="Password").grid(row=2,column=1)
+    entry3 = Entry(root_db,textvariable= pass_var, show="*").grid(row=2,column=2)
+    
+    Label(root_db, text = "Database Name").grid(row=3,column=1)
+    entry4 = Entry(root_db, textvariable= db_name).grid(row=3,column=2)
+        
+    Button(root_db, text= "Submit",command=Submit_db).grid(row=4,column=1)
+
+    root_db.mainloop()
+
+def my_data(query):
+    
+    t1.delete('1.0',END) # delete the previous data if any
+    t1.update() 
+    my_output=''
+    t1.config(bg='grey')# change background colour 
+    my_conn = mysql.connector.connect(
+    host="13.231.114.222",
+    user="root",
+    password="temp123",
+    database="datapipe_line"
+    )
+    cursor = my_conn.cursor()
+    
+    try:
+        cursor.execute(query)
+        print(query.lower().find('select')) 
+        if(query.lower().find('select')!=-1): 
+            for i in cursor:
+                my_output=my_output + str(i) +'\n'
+        else: # Not a select query so show records affected. 
+            my_output="rows affected :" + str(cursor.rowcount)                        
+    except SQLAlchemyError as e:   
+        error = str(e.__dict__['orig'])
+        my_output=error
+        t1.config(bg='red')
+    t1.insert(tk.END,my_output)    
+sql_str=tk.StringVar()
+label1 = Label(root, text="Select your choice", font="bold")
+label1.grid(row=0,column=1)
+
+db_button = Button(root,text="Create database ",command=create_db)
+db_button.grid(row=2,column=1)
+
+#table_botton = Button(root,text="Create table",font="bold").grid(row=2,column=2)
+
+#insert_button.config(width=20, height=2)
+ 
+#record_table=Button(root,text="Insert record",font="bold").grid(row=2,column=3)
+b2=tk.Button(root,text='Query window ',state='active',command=lambda:my_child()) # query button 
+b2.grid(row=7,column=9)
+def my_child():
+    my_w_child=tk.Toplevel(root)
+    my_w_child.geometry("400x200")
+    my_w_child.title('www.jebastine.com')
+    
+    l1_q=tk.Label(my_w_child,text='Query')
+    l1_q.grid(row=1,column=1)
+    t1_child=tk.Text(my_w_child, bg='yellow',height=5,width=45)
+    t1_child.grid(row=2,column=1,padx=10,columnspan=2)
+    t1_child.insert(tk.END, sql_str.get())
+    b3=tk.Button(my_w_child,text='Submit', command=lambda:child_close())
+    b3.grid(row=3,column=1)
+    def child_close():
+        sql_str.set(t1_child.get("1.0",'end-1c')) 
+        my_data(t1_child.get("1.0",'end-1c')) 
+        my_w_child.destroy() # close the child window
+b2=tk.Button(root,text='Query window ',state='active',command=lambda:my_child())  
+b2.grid(row=7,column=9)
+import mysql.connector
+my_conn = mysql.connector.connect(
+  host="13.231.114.222",
+  user="root",
+  password="temp123",
+  database="datapipe_line"
+)
+query = "SELECT TABLES"
+my_connect = my_conn.cursor()
+####### end of connection ####
+my_connect.execute("SHOW TABLES") 
+
+tables = [row[0] for row in my_connect]
+print(tables)
+
+from tkinter import ttk
+#my_w = tk.Tk()
+#my_w.geometry("500x400") 
+sel=tk.StringVar() # string variable 
+cb1 = ttk.Combobox(root, values=tables,textvariable=sel) 
+cb1.grid(row=0,column=0,padx=10,pady=20) 
+
+t1 = tk.Text(root, height=15, width=75,bg='grey')
+t1.grid(row=1,column=0,padx=10,pady=10) # 
+
+def my_show(*args):
+    query="SELECT *  FROM " + sel.get() +" LIMIT 0,10"                
+    my_connect.execute(query) 
+    data=[row for row in my_connect] 
+    my_str="\n".join(map(str,data)) 
+    t1.delete('1.0',END) 
+    t1.insert(tk.END, my_str)  
+sel.trace('w',my_show)
+
+
+def insertrecord() :
+    
+   
+    my_w=tk.Tk()
+    my_w.title("")
+    my_w.geometry("500x350")
+    tk.Label(my_w, text="cust_id",borderwidth=5).grid(row=0)
+    tk.Label(my_w, text="cust_name",borderwidth=5).grid(row=1)
+    tk.Label(my_w, text="cust_cellno",borderwidth=5).grid(row=2)
+    tk.Label(my_w, text="cust_email",borderwidth=5).grid(row=3)
+   
+    
+    
+    e1 = tk.Entry(my_w)
+    e2 = tk.Entry(my_w)
+    e3 = tk.Entry(my_w)
+    e4 = tk.Entry(my_w)
+    
+    
+    e1.grid(row=0, column=1)
+    e2.grid(row=1, column=1)
+    e3.grid(row=2, column=1)
+    e4.grid(row=3, column=1)
+   
+    #textbox label creation
+    ##cx_name_label=Label(win,text='CUSTOMER_NAME')
+    ##cx_name_label.grid(row=0,col=1)
+    ##cx_name_label.pack()
+    ##cx_cellno_label=Label(win,text='CUST_CELLNO')
+    ##cx_cellno_label.grid(row=1,col=1)
+    
+    ##cx_email_label=Label(win,text='CUST_EMAIL')
+    ##cx_email_label.grid(row=2,col=1)
+    
+    ##tk.Button(master,text='Show', command=show_entry_fields).grid(row=3,  column=1, sticky=tk.W, pady=4)
+ 
+    def submit():
+        
+        
+        my_cust_id=e1.get()
+       
+        my_cust_name=e2.get()
+        my_cust_cellno=e3.get()
+        my_cust_email=e4.get()
+        
+        my_conn = mysql.connector.connect(
+            host="13.231.114.222",
+            user="root",
+            password="temp123",
+            database="datapipe_line"
+             )
+        my_connect = my_conn.cursor()
+        query=" INSERT INTO customer_info (cust_id,cust_name,cust_cellno,cust_email) VALUES (%s,%s,%s,%s) "
+        vals=(my_cust_id,my_cust_name,my_cust_cellno,my_cust_email)
+        my_connect.execute(query,vals)                 
+        my_conn.commit
+    
+    submit_button = tk.Button(my_w, text ="Submit", command=submit)
+    submit_button.grid(row=6,column=1)
+    
+    
+ 
+insert_button = tk.Button(root,text ="Insert record", command=insertrecord).grid(row=2,column=2)
+
+root.mainloop()
